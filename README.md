@@ -7,5 +7,5 @@
 修改config.json并填入你发送消息的QQ号以及mirai http-api的key。
 
 ### 感谢：
-mirai(https://github.com/mamoe/mirai-console)
-PigeonClub技术组(https://club.cnklp.cn)
+[mirai](https://github.com/mamoe/mirai-console)
+[PigeonClub技术组](https://club.cnklp.cn)
