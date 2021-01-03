@@ -1,0 +1,90 @@
+#!/bin/sh
+#Creeper制作，我的网站：https://blog.cnklp.cn
+
+#安装相关依赖
+
+verify(){
+    curl -s -d "{"sessionKey": $sessionKey,"qq": $qq}" $http_addr/verify >/dev/null
+}
+
+#登录函数，yyds
+login(){
+    sessionKey=$(curl -s -d "{"authKey": $authKey}" $http_addr/auth | jq .session) >/dev/null
+    verify
+}
+
+sendMessage(){
+    login
+    curl -s -d "{"sessionKey": $sessionKey,"target": $arg2,"messageChain":[{"type": "$messType","$messTypeArg": "$arg4"}]}" $http_addr$messUrlArg >/dev/null
+}
+
+#读取用户发送的参数
+read_args(){
+    if [ "$arg1" == "-f" ]; then
+        messUrlArg=sendFriendMessage
+        if [ "$arg3" == "-t" ]; then
+            messType=Plain
+            messTypeArg=text
+            sendMessage
+        elif [ "$arg3" == "-p" ]; then
+            messType=Image
+            messTypeArg=url
+            sendMessage
+        else
+            echo 错误：请输入正确的参数。
+            exit
+        fi
+    elif [ "$arg1" == "-g" ]; then
+        messUrlArg=sendGroupMessage
+        if [ "$arg3" == "-t" ]; then
+            messType=Plain
+            messTypeArg=text
+            sendMessage
+        elif [ "$arg3" == "-p" ]; then
+            messType=Image
+            messTypeArg=url
+            sendMessage
+        else
+            echo 错误：请输入正确的参数。
+            exit
+        fi
+    else
+        echo 错误：请输入正确的参数。
+        exit
+    fi
+}
+
+help_echo(){
+    #帮助信息
+    echo 脚本基于Mirai-http-api编写。PigeonClub鸽社技术组，版权所有。登录前请修改根目录下的config.json完成一些必要的设定。
+    echo 用法：
+    echo $0 -f [QQ号] [内容格式] [内容/图片URL] 向机器人的好友发送文本/图片消息，内容请务必使用半角符号引起，图片消息为URL格式。 
+    echo $0 -g [群号] [内容格式] [内容/图片URL] 向机器人已加入的群发送文本/图片消息，内容请务必使用半角符号引起，图片消息为URL格式。
+    echo 支持的内容格式：-t：文字，-p：图片。
+    echo $0 install 安装必要的依赖，请务必在使用前先运行安装命令。
+}
+
+#fucation for start
+script_abs=$(readlink -f "$0")
+script_dir=$(dirname $script_abs)
+cd $script_dir
+arg1=$1
+arg2=$2
+arg3=$3
+arg4=$4
+arg5=$5
+http_addr=http://127.0.0.1:8080/
+qq=$(cat config.json | jq .qq)
+authKey=$(cat config.json | jq .authKey)
+if [ "$1" == "help" ]; then
+    help_echo
+elif [ "$1" == "test" ]; then
+    fucation_test
+elif [ "$1" == "-m" ]; then
+    message_friend
+elif [ "$arg1" == "-f" ]||[ "$arg1" == "-g" ]; then
+    read_args
+else
+    echo -e "\033[31m错误：缺少参数或参数错误\033[0m"
+    help_echo
+fi
